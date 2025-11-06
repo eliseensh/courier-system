@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: courier-system
+    env: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_KEY
+        value: base64:mU5s5Ab4E3PKL2LNtVOjr/pmzAEXPZJNNh/vnMPdy0M=
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://courier-system-5e0l.onrender.com
