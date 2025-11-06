@@ -43,9 +43,9 @@ RUN mkdir -p storage bootstrap/cache database \
     && chown -R www-data:www-data storage bootstrap/cache database
 
 # -------------------------------
-# Install PHP dependencies
+# Install PHP dependencies WITHOUT running scripts
 # -------------------------------
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 # -------------------------------
 # Expose port 80
@@ -53,6 +53,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 EXPOSE 80
 
 # -------------------------------
-# Entrypoint for Laravel cache & start Apache
+# Start Laravel + Apache at runtime
 # -------------------------------
-ENTRYPOINT ["sh", "-c", "php artisan config:cache && php artisan route:cache && apache2-foreground"]
+ENTRYPOINT ["sh", "-c", "php artisan key:generate && php artisan config:cache && php artisan route:cache && apache2-foreground"]
