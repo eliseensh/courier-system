@@ -24,14 +24,17 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
 
-# Copy the rest of the application first
-COPY . .
-
-# Install PHP dependencies (after artisan exists)
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
-# Set permissions for Laravel
+# Copy the rest of the application
+COPY . .
+
+# Set proper permissions for Laravel folders
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Generate application key (optional, if key not already in .env)
+# RUN php artisan key:generate
 
 # Expose port 80
 EXPOSE 80
