@@ -1,4 +1,4 @@
-# Use official PHP image with Apache
+# Use PHP 8.2 with Apache
 FROM php:8.2-apache
 
 # Set working directory
@@ -6,37 +6,35 @@ WORKDIR /var/www/html
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libzip-dev \
-    zip \
-    unzip \
     git \
-    curl \
+    unzip \
+    libzip-dev \
     libonig-dev \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl gd
+    && docker-php-ext-install pdo pdo_mysql zip mbstring gd \
+    && a2enmod rewrite
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Copy composer files first for caching
+COPY composer.json composer.lock ./
 
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/html/
-
-# Install composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Install Composer
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
+    && php -r "unlink('composer-setup.php');"
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
 # Copy the rest of the application
-COPY . /var/www/html
+COPY . .
 
-# Set permissions for storage and bootstrap/cache
+# Set permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
 
-# Start Apache server
+# Start Apache
 CMD ["apache2-foreground"]
