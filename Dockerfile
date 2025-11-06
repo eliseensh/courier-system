@@ -48,16 +48,11 @@ RUN mkdir -p storage bootstrap/cache database \
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # -------------------------------
-# Laravel cache (optional)
-# -------------------------------
-RUN php artisan config:cache && php artisan route:cache
-
-# -------------------------------
 # Expose port 80
 # -------------------------------
 EXPOSE 80
 
 # -------------------------------
-# Start Apache server
+# Entrypoint for Laravel cache & start Apache
 # -------------------------------
-CMD ["apache2-foreground"]
+ENTRYPOINT ["sh", "-c", "php artisan config:cache && php artisan route:cache && apache2-foreground"]
