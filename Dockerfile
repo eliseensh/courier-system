@@ -4,7 +4,9 @@ FROM php:8.2-apache
 # Set working directory
 WORKDIR /var/www/html
 
+# -------------------------------
 # Install system dependencies
+# -------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
@@ -13,36 +15,49 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    sqlite3 \
+    libsqlite3-dev \
     ca-certificates \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql zip mbstring gd \
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite zip mbstring gd \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
+# -------------------------------
 # Install Composer
+# -------------------------------
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
 
-# Copy the entire Laravel application first
+# -------------------------------
+# Copy Laravel application
+# -------------------------------
 COPY . /var/www/html
 
-# Ensure correct permissions for Laravel storage and cache
+# -------------------------------
+# Ensure correct permissions
+# -------------------------------
 RUN mkdir -p storage bootstrap/cache database \
+    && touch database/database.sqlite \
     && chown -R www-data:www-data storage bootstrap/cache database
 
-# Install PHP dependencies (after all files are copied)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
+# -------------------------------
+# Install PHP dependencies
+# -------------------------------
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# (Optional) Cache Laravel configuration and routes for better performance
+# -------------------------------
+# Laravel cache (optional)
+# -------------------------------
 RUN php artisan config:cache && php artisan route:cache
 
-# Create SQLite database file if using SQLite
-RUN touch /var/www/html/database/database.sqlite \
-    && chown www-data:www-data /var/www/html/database/database.sqlite
-
-# Expose port 80 for Apache
+# -------------------------------
+# Expose port 80
+# -------------------------------
 EXPOSE 80
 
+# -------------------------------
 # Start Apache server
+# -------------------------------
 CMD ["apache2-foreground"]
