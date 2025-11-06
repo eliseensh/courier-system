@@ -24,11 +24,11 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
-
-# Copy the rest of the application
+# Copy the rest of the application first
 COPY . .
+
+# Install PHP dependencies (after artisan exists)
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
