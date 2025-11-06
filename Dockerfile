@@ -24,28 +24,25 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
 
-# Copy composer files first for caching
-COPY composer.json composer.lock /var/www/html/
+# Copy the entire Laravel application first
+COPY . /var/www/html
 
-# Create required directories BEFORE installing dependencies
+# Ensure correct permissions for Laravel storage and cache
 RUN mkdir -p storage bootstrap/cache database \
     && chown -R www-data:www-data storage bootstrap/cache database
 
-# Install PHP dependencies
+# Install PHP dependencies (after all files are copied)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
 
-# Copy the rest of the application
-COPY . /var/www/html
+# (Optional) Cache Laravel configuration and routes for better performance
+RUN php artisan config:cache && php artisan route:cache
 
 # Create SQLite database file if using SQLite
 RUN touch /var/www/html/database/database.sqlite \
     && chown www-data:www-data /var/www/html/database/database.sqlite
 
-# Ensure storage and cache are writable
-RUN chown -R www-data:www-data storage bootstrap/cache
-
-# Expose port 80
+# Expose port 80 for Apache
 EXPOSE 80
 
-# Start Apache
+# Start Apache server
 CMD ["apache2-foreground"]
