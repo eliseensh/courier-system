@@ -1,26 +1,21 @@
-# Node modules
+# Node and PHP build artifacts
 node_modules
-npm-debug.log
-yarn-error.log
-
-# PHP vendor folder (will be installed in Docker)
+public/build
 vendor
 
-# Environment files (never include your secrets in the image)
+# Environment files (do NOT include private .env in image)
 .env
 .env.*.local
 
-# IDE/editor files
+# IDE/editor
 .vscode
 .idea
-*.sublime-project
-*.sublime-workspace
 
-# System files
+# System
 .DS_Store
 Thumbs.db
 
-# Storage and cache (generated inside container)
+# Storage / cache (generated at runtime)
 storage/*.key
 storage/debugbar
 storage/logs
@@ -29,8 +24,7 @@ storage/framework/sessions
 storage/framework/views
 bootstrap/cache/*.php
 
-# Test reports
+# Logs/tests
+npm-debug.log
+yarn-error.log
 phpunit.result.cache
-
-# Build artifacts
-public/build
