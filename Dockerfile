@@ -4,7 +4,9 @@ FROM php:8.2-apache
 # Set working directory
 WORKDIR /var/www/html
 
+# -------------------------------
 # Install system dependencies
+# -------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
@@ -13,43 +15,50 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    sqlite3 \
+    libsqlite3-dev \
     ca-certificates \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql zip mbstring gd \
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite zip mbstring gd \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
+# -------------------------------
 # Install Composer
+# -------------------------------
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
 
-# Copy composer files first for caching
-COPY composer.json composer.lock /var/www/html/
-
-# Create required directories before Composer install
-RUN mkdir -p bootstrap/cache \
-    && mkdir -p storage/framework/{cache,sessions,views} \
-    && mkdir -p database \
-    && chmod -R 775 storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache database
-
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-
-# Copy the rest of the application
+# -------------------------------
+# Copy Laravel application
+# -------------------------------
 COPY . /var/www/html
 
-# Ensure the SQLite database exists (if using SQLite)
-RUN touch /var/www/html/database/database.sqlite \
-    && chown www-data:www-data /var/www/html/database/database.sqlite
+# -------------------------------
+# Ensure correct permissions for Laravel directories
+# -------------------------------
+RUN mkdir -p storage/framework/cache \
+             storage/framework/sessions \
+             storage/framework/views \
+             storage/logs \
+             bootstrap/cache \
+             database \
+    && touch database/database.sqlite \
+    && chmod -R 775 storage bootstrap/cache database \
+    && chown -R www-data:www-data storage bootstrap/cache database
 
-# Ensure all Laravel writable folders are correct
-RUN chmod -R 775 storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+# -------------------------------
+# Install PHP dependencies WITHOUT running scripts
+# -------------------------------
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
-# Expose port 80 for Render
+# -------------------------------
+# Expose port 80
+# -------------------------------
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# -------------------------------
+# Start Laravel + Apache at runtime
+# -------------------------------
+ENTRYPOINT ["sh", "-c", "php artisan key:generate && php artisan config:cache && php artisan route:cache && apache2-foreground"]
