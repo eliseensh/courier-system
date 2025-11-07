@@ -49,6 +49,12 @@ RUN mkdir -p storage/framework/cache \
     && chown -R www-data:www-data storage bootstrap/cache database
 
 # -------------------------------
+# Set Apache DocumentRoot to Laravel's public directory
+# -------------------------------
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
+    && chown -R www-data:www-data /var/www/html/public
+
+# -------------------------------
 # Install PHP dependencies WITHOUT running scripts
 # -------------------------------
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
