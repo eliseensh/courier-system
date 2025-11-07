@@ -65,6 +65,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 EXPOSE 80
 
 # -------------------------------
-# Start Laravel + Apache at runtime
+# Start Laravel + Apache at runtime (with migrations and logging)
 # -------------------------------
-ENTRYPOINT ["sh", "-c", "php artisan key:generate && php artisan config:cache && php artisan route:cache && apache2-foreground"]
+ENTRYPOINT ["sh", "-c", "php artisan key:generate && php artisan migrate --force && php artisan config:cache && php artisan route:cache && apache2-foreground"]
