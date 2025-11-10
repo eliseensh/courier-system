@@ -63,9 +63,9 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 # -------------------------------
-# Install Node dependencies and build assets
+# Install Node dependencies and build assets (with cache clean)
 # -------------------------------
-RUN npm install && npm run build
+RUN npm cache clean --force && npm install && npm run build
 
 # -------------------------------
 # Expose port 80
