@@ -42,11 +42,12 @@ RUN mkdir -p storage/framework/cache \
              storage/framework/sessions \
              storage/framework/views \
              storage/logs \
+             storage/app/public \
              bootstrap/cache \
              database \
     && touch database/database.sqlite \
     && chmod -R 775 storage bootstrap/cache database \
-    && chown -R www-data:www-data storage bootstrap/cache database
+    && chown -R www-data:www-data storage bootstrap/cache database /var/www/html/public
 
 # -------------------------------
 # Set Apache DocumentRoot to Laravel's public directory
@@ -65,6 +66,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 EXPOSE 80
 
 # -------------------------------
-# Start Laravel + Apache at runtime (with migrations and logging)
+# Start Laravel + Apache at runtime (with migrations, storage link, and logging)
 # -------------------------------
-ENTRYPOINT ["sh", "-c", "php artisan key:generate && php artisan migrate --force && php artisan config:cache && php artisan route:cache && apache2-foreground"]
+ENTRYPOINT ["sh", "-c", "php artisan key:generate && php artisan migrate --force && php artisan storage:link && php artisan config:cache && php artisan route:cache && apache2-foreground"]
