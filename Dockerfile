@@ -5,7 +5,7 @@ FROM php:8.2-apache
 WORKDIR /var/www/html
 
 # -------------------------------
-# Install system dependencies
+# Install system dependencies (including Node.js)
 # -------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sqlite3 \
     libsqlite3-dev \
     ca-certificates \
+    nodejs \
+    npm \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql pdo_sqlite zip mbstring gd \
     && a2enmod rewrite \
@@ -59,6 +61,11 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 # Install PHP dependencies WITHOUT running scripts
 # -------------------------------
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
+
+# -------------------------------
+# Install Node dependencies and build assets
+# -------------------------------
+RUN npm install && npm run build
 
 # -------------------------------
 # Expose port 80
