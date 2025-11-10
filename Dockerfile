@@ -47,15 +47,15 @@ RUN mkdir -p storage/framework/cache \
              storage/app/public \
              bootstrap/cache \
              database \
-    && touch database/database.sqlite \
-    && chmod -R 775 storage bootstrap/cache database \
-    && chown -R www-data:www-data storage bootstrap/cache database /var/www/html/public
+   && touch database/database.sqlite \
+   && chmod -R 775 storage bootstrap/cache database \
+   && chown -R www-data:www-data storage bootstrap/cache database /var/www/html/public
 
 # -------------------------------
 # Set Apache DocumentRoot to Laravel's public directory
 # -------------------------------
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
-    && chown -R www-data:www-data /var/www/html/public
+   && chown -R www-data:www-data /var/www/html/public
 
 # -------------------------------
 # Install PHP dependencies WITHOUT running scripts
@@ -63,9 +63,9 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 # -------------------------------
-# Install Node dependencies and build assets (with cache clean)
+# Install Node dependencies and build assets
 # -------------------------------
-RUN npm cache clean --force && npm install && npm run build
+RUN npm install --no-package-lock && npm run build
 
 # -------------------------------
 # Expose port 80
